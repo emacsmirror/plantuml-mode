@@ -39,6 +39,30 @@ jobs:
         entrypoint: bash
     <<: *default-steps
 
+  test-emacs-27:
+    docker:
+      - image: silex/emacs:26
+        entrypoint: bash
+    <<: *default-steps
+
+  test-emacs-28:
+    docker:
+      - image: silex/emacs:26
+        entrypoint: bash
+    <<: *default-steps
+
+  test-emacs-29:
+    docker:
+      - image: silex/emacs:26
+        entrypoint: bash
+    <<: *default-steps
+
+  test-emacs-30:
+    docker:
+      - image: silex/emacs:26
+        entrypoint: bash
+    <<: *default-steps
+
   test-emacs-master:
     docker:
       - image: silex/emacs:master
@@ -52,5 +76,9 @@ workflows:
     jobs:
       - test-emacs-25
       - test-emacs-26
+      - test-emacs-27
+      - test-emacs-28
+      - test-emacs-29
+      - test-emacs-30
       # Testing against master currently hangs on CircleCI
       # - test-emacs-master
