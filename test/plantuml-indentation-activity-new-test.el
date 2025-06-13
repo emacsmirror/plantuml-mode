@@ -70,7 +70,7 @@ stop
 @enduml"))
 
 (ert-deftest plantuml-test-indentation/activity-new/repeat-loop ()
-  "Test correct indentation of plantuml activity-new repeat loop
+  "Test correct indentation of plantuml activity-new repeat loop.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
 "@startuml
@@ -101,7 +101,7 @@ stop
 
 
 (ert-deftest plantuml-test-indentation/activity-new/while-loop ()
-  "Test correct indentation of plantuml activity-new while loop
+  "Test correct indentation of plantuml activity-new while loop.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
 "@startuml
@@ -146,7 +146,7 @@ endwhile (empty)
 @enduml"))
 
 (ert-deftest plantuml-test-indentation/activity-new/fork ()
-  "Test correct indentation of plantuml activity-new forks
+  "Test correct indentation of plantuml activity-new forks.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
    "@startuml
@@ -182,11 +182,36 @@ endif
 
 @enduml"))
 
-(ert-deftest plantuml-test-indentation/activity-new/notes ()
-  "Test correct indentation of plantuml activity-new notes
+(ert-deftest plantuml-test-indentation/activity-new/fork-with-label ()
+  "Test correct indentation of plantuml activity-new forks.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
-"@startuml
+   "@startuml
+start
+fork
+:action A;
+fork again
+:action B;
+end fork {or}
+stop
+@enduml
+"
+   "@startuml
+start
+fork
+  :action A;
+fork again
+  :action B;
+end fork {or}
+stop
+@enduml
+"))
+
+(ert-deftest plantuml-test-indentation/activity-new/notes ()
+  "Test correct indentation of plantuml activity-new notes.
+These code examples are taken from www.plantuml.com"
+  (plantuml-test-indent-block
+   "@startuml
 
 start
 :foo1;
@@ -203,7 +228,7 @@ stop
 
 @enduml"
 
-"@startuml
+   "@startuml
 
 start
 :foo1;
@@ -221,7 +246,7 @@ stop
 @enduml"))
 
 (ert-deftest plantuml-test-indentation/activity-new/grouping ()
-  "Test correct indentation of plantuml activity-new grouping
+  "Test correct indentation of plantuml activity-new grouping.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
 "@startuml
@@ -253,7 +278,7 @@ stop
 @enduml"))
 
 (ert-deftest plantuml-test-indentation/activity-new/sdl+splits ()
-  "Test correct indentation of plantuml activity-new sdl rendering and splits
+  "Test correct indentation of plantuml activity-new sdl rendering and splits.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
 "@startuml
@@ -307,7 +332,7 @@ end split
 @enduml"))
 
 (ert-deftest plantuml-test-indentation/activity-new/complete ()
-  "Test correct indentation of plantuml activity-new complete example
+  "Test correct indentation of plantuml activity-new complete example.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
 "@startuml
@@ -385,7 +410,7 @@ stop
 @enduml"))
 
 (ert-deftest plantuml-test-indentation/activity-new/switch-1 ()
-  "Test correct indentation of plantuml activity-new complete example
+  "Test correct indentation of plantuml activity-new complete example.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
    "@startuml
@@ -423,7 +448,7 @@ stop
 @enduml"))
 
 (ert-deftest plantuml-test-indentation/activity-new/switch-2 ()
-  "Test correct indentation of plantuml activity-new complete example
+  "Test correct indentation of plantuml activity-new complete example.
 These code examples are taken from www.plantuml.com"
   (plantuml-test-indent-block
    "@startuml
@@ -461,5 +486,4 @@ stop
 @enduml"))
 
 (provide 'plantuml-indentation-activity-new-test)
-
-;;; plantuml-indentation-activity-old-test.el ends here
+;;; plantuml-indentation-activity-new-test.el ends here

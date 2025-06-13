@@ -429,8 +429,8 @@ Put the result into buffer BUF.  Window is selected according to PREFIX:
   "Encode the string STRING into a URL suitable for PlantUML server interactions."
   (let* ((coding-system (or buffer-file-coding-system
                             "utf8"))
-	 (str (encode-coding-string string coding-system))
-         (encoded-string (mapconcat (lambda(x)(format "%02X" x)) str ) ))
+         (str (encode-coding-string string coding-system))
+         (encoded-string (mapconcat (lambda(x)(format "%02X" x)) str)))
     (concat plantuml-server-url "/" plantuml-output-type "/~h" encoded-string)))
 
 (defun plantuml-server-preview-string (prefix string buf)
@@ -628,7 +628,7 @@ or it is followed by line end.")
       (defvar plantuml-indent-regexp-oldif-end "^\s*\\(endif\\|else\\)\s*\\('.*\\)?$")
       (defvar plantuml-indent-regexp-newif-end "^\s*\\(endif\\|elseif\\|else\\)\s*.*$")
       (defvar plantuml-indent-regexp-loop-end "^\s*\\(repeat\s*while\\|endwhile\\)\s*.*$")
-      (defvar plantuml-indent-regexp-fork-end "^\s*\\(\\(fork\\|split\\)\s+again\\|end\s+\\(fork\\|split\\)\\)\s*$")
+      (defvar plantuml-indent-regexp-fork-end "^\s*\\(\\(fork\\|split\\)\s+again\\|end\s+\\(fork\\|split\\)\\)\s*\\(\{.*\}\\)?\s*$")
       (defvar plantuml-indent-regexp-case-end "^\s*\\(case\s-*(.*)\\|endswitch\\)\s*\\('.*\\)?$")
       (defvar plantuml-indent-regexp-macro-end "^\s*!enddefinelong\s*\\('.*\\)?$")
       (defvar plantuml-indent-regexp-user-control-end "^.*'.*\s*PLANTUML_MODE_INDENT_DECREASE\s*.*$")
