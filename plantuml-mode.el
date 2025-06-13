@@ -741,7 +741,7 @@ Restore point to same position in text of the line as before indentation."
 
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.\\(plantuml\\|pum\\|plu\\)\\'" . plantuml-mode))
+(add-to-list 'auto-mode-alist '("\\.\\(pu\\|uml\\|plantuml\\|pum\\|plu\\)\\'" . plantuml-mode))
 
 ;;;###autoload
 (define-derived-mode plantuml-mode prog-mode "plantuml"
