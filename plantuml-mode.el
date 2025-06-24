@@ -461,7 +461,8 @@ Put the result into buffer BUF and place it according to PREFIX:
       (save-match-data
         (url-retrieve url-request-location
                       (lambda (status)
-                        ;; TODO: error check
+                        (if-let ((error (plist-get status :error)))
+                          (message (concat "PlantUML " (prin1-to-string error))))
                         (goto-char (point-min))
                         ;; skip the HTTP headers
                         (while (not (looking-at "\n"))
@@ -610,7 +611,7 @@ The opening { has to be the last visible character in the line (whitespace
 might follow).")
       (defvar plantuml-indent-regexp-note-start "^\s*\\(floating\s+\\)?[hr]?note\s+\\(right\\|left\\|top\\|bottom\\|over\\|as\\)[^:]*\\(\\:\\:[^:]+\\)?$" "simplyfied regex; note syntax is especially inconsistent across diagrams")
       (defvar plantuml-indent-regexp-group-start "^\s*\\(alt\\|else\\|opt\\|loop\\|par\\|break\\|critical\\|group\\)\\(?:\s+.+\\|$\\)"
-        "Indentation regex for plantuml group elements that are defined for sequence diagrams.
+        "Indentation regex for plantuml group elements  defined for sequence diagrams.
 Two variants for groups: keyword is either followed by whitespace and some text
 or it is followed by line end.")
       (defvar plantuml-indent-regexp-activate-start "^\s*activate\s+.+$")
