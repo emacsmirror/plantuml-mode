@@ -159,6 +159,13 @@ see `plantuml-executable-path'."
   :type 'natnum
   :group 'plantuml)
 
+(defcustom plantuml-preview-default-theme nil
+  "Sets the default theme to use when rendering diagrams.
+Works only if `!theme' does not appear  in the diagram to be displayed."
+  :type 'string
+  :group 'plantuml
+  :safe #'stringp)
+
 (defun plantuml-jar-render-command (&rest arguments)
   "Create a command line to execute PlantUML with arguments (as ARGUMENTS)."
   (let* ((cmd-list (append plantuml-java-args (list (expand-file-name plantuml-jar-path)) plantuml-jar-args arguments))
@@ -502,9 +509,24 @@ Put the result into buffer BUF, selecting the window according to PREFIX:
         (funcall preview-fn prefix string buf)
       (error "Unsupported execution mode %s" mode))))
 
+(defun plantuml-themed-p (string)
+  "Return non-nil if STRING is a PlantUML source with explicit theme directive."
+  ;; check for beginning of line with word boundary
+  (string-match-p "^\\s-*!theme\\b" string))
+
+(defun plantuml-set-theme (string theme)
+  "Add the THEME to the diagram STRING."
+  (replace-regexp-in-string "^@startuml"
+                            (concat "@startuml\n!theme " theme)
+                            string))
+
 (defun plantuml-preview-string (prefix string)
   "Preview diagram from PlantUML sources (as STRING), using prefix (as PREFIX)
-to choose where to display it."
+to choose where to display it.
+Put the result into buffer BUF, selecting the window according to PREFIX:
+- 4  (when prefixing the command with C-u) -> new window
+- 16 (when prefixing the command with C-u C-u) -> new frame.
+- else -> new buffer"
   (when-let ((b (get-buffer plantuml-preview-buffer))
              (inhibit-read-only t))
     (with-current-buffer b
@@ -514,8 +536,19 @@ to choose where to display it."
                       (plantuml-is-image-output-p)))
          (buf (get-buffer-create plantuml-preview-buffer))
          (coding-system-for-read (and imagep 'binary))
-         (coding-system-for-write (and imagep 'binary)))
-    (plantuml-exec-mode-preview-string prefix (plantuml-get-exec-mode) string buf)))
+         (coding-system-for-write (and imagep 'binary))
+         (themed (plantuml-themed-p string)))
+    (if (and (not (plantuml-themed-p string))
+             plantuml-preview-default-theme)
+        ;; override the theme
+        (plantuml-exec-mode-preview-string prefix
+                                           (plantuml-get-exec-mode)
+                                           (plantuml-set-theme string plantuml-preview-default-theme)
+                                           buf)
+      (plantuml-exec-mode-preview-string prefix
+                                         (plantuml-get-exec-mode)
+                                         string
+                                         buf))))
 
 (defun plantuml-preview-buffer (prefix)
   "Preview diagram from the PlantUML sources in the current buffer.
@@ -803,6 +836,7 @@ Shortcuts             Command Name
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-style) 'extra-line)
   (set (make-local-variable 'indent-line-function) 'plantuml-indent-line)
+  (make-local-variable 'plantuml-preview-default-theme)
   (setq font-lock-defaults '((plantuml-font-lock-keywords) nil t))
   (setq-local completion-at-point-functions (list #'plantuml-complete-symbol)))
 
