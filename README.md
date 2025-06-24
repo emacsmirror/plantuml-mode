@@ -68,7 +68,8 @@ You can also download the latest version of PlantUML straight into `plantuml-jar
 - Syntax highlight
 - Autocompletion
 - Preview of buffer or region
-- [EXPERIMENTAL] Use either local JAR or remote server for preview
+- Use either local JAR or remote server for preview
+- Set default custom theme (unless explicitly set in the diagram source)
 
 # Enable the major mode
 
@@ -92,6 +93,21 @@ To render the PlantUML diagram within Emacs, you can hit `M-x plantuml-preview`.
 The diagram will be either created from the selected region if one is available in the current buffer, or using the whole buffer otherwise.
 
 If you want to force a specific output format, you can customize the variable `plantuml-output-type` to the value you prefer.
+
+## Configuration
+
+The following custom variables are available:
+
+- `plantuml-jar-path`: the local path to the `plantuml.jar` file to use when running in `jar` execution mode
+- `plantuml-executable-path`: the local path to the `plantuml` executable file to use when running in `executable` mode
+- `plantuml-executable-args`: the arguments passed to the `plantuml-executable-path` commandh
+- `plantuml-java-command`: the name of the `java` command to use when running in `jar` execution mode
+- `plantuml-java-args`: the arguments passed to the `plantuml-java-command`
+- `plantuml-server-url`: the URL of the PlantUML server to contact when running in `server` execution mode
+- `plantuml-default-exec-mode`: one of `jar` / `server` / `executable`
+- `plantuml-suppress-deprecation-warning`: whether to silence the warning if the deprecated `puml-mode` is found
+- `plantuml-indent-level`: the indentation level to use for PlantUML blocks
+- `plantuml-preview-default-theme`: the default `!theme` to use when rendering diagrams when no explicit `!theme` directive is found
 
 ## Default key bindings
 
