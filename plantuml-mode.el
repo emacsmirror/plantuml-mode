@@ -5,10 +5,11 @@
 ;; Compatibility: Tested with Emacs 25 through 27 (current master)
 ;; Author: Zhang Weize (zwz)
 ;; Maintainer: Carlo Sciolla (skuro)
-;; Keywords: uml plantuml ascii
+;; Keywords: files text processes tools
 ;; Version: 1.2.9
 ;; Package-Version: 1.2.9
-;; Package-Requires: ((dash "2.0.0") (emacs "25.0"))
+;; Package-Requires: ((dash "2.0.0") (emacs "25.1"))
+;; Homepage: https://github.com/skuro/plantuml-mode
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -78,7 +79,7 @@
 (require 'dash)
 (require 'xml)
 
-(defgroup plantuml-mode nil  "Major mode for editing plantuml file."
+(defgroup plantuml nil  "Major mode for editing plantuml file."
   :group 'languages)
 
 (defcustom plantuml-jar-path
@@ -145,14 +146,14 @@
   :group 'plantuml)
 
 (defcustom plantuml-indent-level 8
-  "Indentation level of PlantUML lines"
+  "Indentation level of PlantUML lines."
   :type 'natnum
   :group 'plantuml)
 
 (defun plantuml-jar-render-command (&rest arguments)
   "Create a command line to execute PlantUML with arguments (as ARGUMENTS)."
   (let* ((cmd-list (append plantuml-java-args (list (expand-file-name plantuml-jar-path)) plantuml-jar-args arguments))
-         (cmd (mapconcat 'identity cmd-list "|")))
+         (cmd (mapconcat #'identity cmd-list "|")))
     (plantuml-debug (format "Command is [%s]" cmd))
     cmd-list))
 
@@ -263,7 +264,7 @@
   (with-current-buffer buf
     (let ((cmd-args (append (list plantuml-java-command nil t nil)
                             (plantuml-jar-render-command "-language"))))
-      (apply 'call-process cmd-args)
+      (apply #'call-process cmd-args)
       (goto-char (point-min)))))
 
 (defun plantuml-server-get-language (buf)
@@ -276,7 +277,7 @@
   "Retrieve the language specification from the PlantUML executable and paste it into BUF."
   (with-current-buffer buf
     (let ((cmd-args (append (list plantuml-executable-path nil t nil) (list "-language"))))
-      (apply 'call-process cmd-args)
+      (apply #'call-process cmd-args)
       (goto-char (point-min)))))
 
 (defun plantuml-get-language (mode buf)
@@ -546,8 +547,18 @@ Uses prefix (as PREFIX) to choose where to display it:
       (plantuml-preview-region prefix (region-beginning) (region-end))
     (plantuml-preview-buffer prefix)))
 
+(defun plantuml-deprecation-warning ()
+  "Warns the user about the deprecation of the `puml-mode' project."
+  (if (and plantuml-suppress-deprecation-warning
+           (featurep 'puml-mode))
+      (display-warning :warning
+                       "`puml-mode' is now deprecated and no longer updated, but it's still present in your system. \
+You should move your configuration to use `plantuml-mode'. \
+See more at https://github.com/skuro/puml-mode/issues/26")))
+
 (defun plantuml-init-once (&optional mode)
   "Ensure initialization only happens once.  Use exec mode MODE to load the language details or by first querying `plantuml-get-exec-mode'."
+  (plantuml-deprecation-warning)
   (let ((mode (or mode (plantuml-get-exec-mode))))
     (unless plantuml-kwdList
       (plantuml-init mode)
@@ -758,17 +769,6 @@ Shortcuts             Command Name
   (set (make-local-variable 'comment-style) 'extra-line)
   (set (make-local-variable 'indent-line-function) 'plantuml-indent-line)
   (setq font-lock-defaults '((plantuml-font-lock-keywords) nil t)))
-
-(defun plantuml-deprecation-warning ()
-  "Warns the user about the deprecation of the `puml-mode' project."
-  (if (and plantuml-suppress-deprecation-warning
-           (featurep 'puml-mode))
-      (display-warning :warning
-                       "`puml-mode' is now deprecated and no longer updated, but it's still present in your system. \
-You should move your configuration to use `plantuml-mode'. \
-See more at https://github.com/skuro/puml-mode/issues/26")))
-
-(add-hook 'plantuml-mode-hook 'plantuml-deprecation-warning)
 
 (provide 'plantuml-mode)
 ;;; plantuml-mode.el ends here
