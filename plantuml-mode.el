@@ -729,6 +729,21 @@ or it is followed by line end.")
                 (all-completions meat plantuml-kwdList)))
              (message "Making completion list...%s" "done")))))
 
+(make-obsolete 'plantuml-complete-symbol
+               "Use `completion-at-point' (C-M-i) instead"
+               "1.7.0")
+
+(defun plantuml-completion-at-point-function ()
+  "Complete symbol at point using `plantuml-kwdList'.
+See `completion-at-point-functions'."
+  (let ((thing-start (beginning-of-thing 'symbol))
+        (thing-end (end-of-thing 'symbol)))
+
+    (list thing-start
+          thing-end
+          plantuml-kwdList
+          '(:exclusive no))))
+
 
 ;; indentation
 
@@ -787,7 +802,8 @@ Shortcuts             Command Name
   (set (make-local-variable 'comment-multi-line) t)
   (set (make-local-variable 'comment-style) 'extra-line)
   (set (make-local-variable 'indent-line-function) 'plantuml-indent-line)
-  (setq font-lock-defaults '((plantuml-font-lock-keywords) nil t)))
+  (setq font-lock-defaults '((plantuml-font-lock-keywords) nil t))
+  (setq-local completion-at-point-functions (list #'plantuml-complete-symbol)))
 
 (provide 'plantuml-mode)
 ;;; plantuml-mode.el ends here
