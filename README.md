@@ -129,7 +129,7 @@ You can use `plantuml-mode` to edit PlantUML source snippets within an [`org-mod
   'org-src-lang-modes '("plantuml" . plantuml))
 ```
 
-Then you can edit a `plantuml` code block with `plantuml-mode` by hitting `C-'` while inside of the code block itself:
+Then you can edit a `plantuml` code block with `plantuml-mode` by hitting `C-c '` while inside of the code block itself:
 
 ```elisp
 #+BEGIN_SRC plantuml
