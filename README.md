@@ -105,10 +105,12 @@ The following custom variables are available:
 - `plantuml-java-args`: the arguments passed to the `plantuml-java-command`
 - `plantuml-server-url`: the URL of the PlantUML server to contact when running in `server` execution mode
 - `plantuml-default-exec-mode`: one of `jar` / `server` / `executable`
+- `plantuml-output-type`: one of `"svg"` / `"png"` / `"txt"`
 - `plantuml-suppress-deprecation-warning`: whether to silence the warning if the deprecated `puml-mode` is found
 - `plantuml-indent-level`: the indentation level to use for PlantUML blocks
 - `plantuml-preview-default-theme`: the default `!theme` to use when rendering diagrams when no explicit `!theme` directive is found
 - `plantuml-server-encode-mode`: how to generate the URL when in `server` execution mode,  either compress with `'deflate` (better for network) or encode with `'hex` (better for CPU usage), see [the official PlantUML docs] (https://plantuml.com/text-encoding)
+- `plantuml-svg-background`: set to a valid color to force a background when using `"svg"` as `plantuml-output-type` or `nil` to leave the default transparent background
 
 ## Default key bindings
 

@@ -175,6 +175,12 @@ Works only if `!theme' does not appear  in the diagram to be displayed."
   :group 'plantuml
   :options '(deflate hex))
 
+(defcustom plantuml-svg-background nil
+  "The color SVG rendering will use as background.
+Useful when the default transparent color makes the diagram hard to see."
+  :type 'string
+  :group 'plantuml)
+
 (defun plantuml-jar-render-command (&rest arguments)
   "Create a command line to execute PlantUML with arguments (as ARGUMENTS)."
   (let* ((cmd-list (append plantuml-java-args (list (expand-file-name plantuml-jar-path)) plantuml-jar-args arguments))
@@ -432,7 +438,10 @@ Window is selected according to PREFIX:
 - 16 (when prefixing the command with C-u C-u) -> new frame.
 - else -> new buffer"
   (let ((imagep (and (display-images-p)
-                     (plantuml-is-image-output-p))))
+                     (plantuml-is-image-output-p)))
+        ;; capture the output type before switching context to `buf'
+        ;; as `plantuml-output-type' can be local
+        (output-type plantuml-output-type))
     (cond
      ((= prefix 16) (switch-to-buffer-other-frame buf))
      ((= prefix 4)  (switch-to-buffer-other-window buf))
@@ -440,7 +449,12 @@ Window is selected according to PREFIX:
     (when imagep
       (with-current-buffer buf
         (image-mode)
-        (set-buffer-multibyte t)))
+        (set-buffer-multibyte t)
+        (when (and (equal "svg" output-type))
+          (let ((inhibit-read-only t)
+                (svg-data (buffer-string)))
+            (erase-buffer)
+            (insert-image (create-image svg-data 'svg t :background plantuml-svg-background))))))
     (set-window-point (get-buffer-window buf 'visible) (point-min))))
 
 (defun plantuml-jar-preview-string (prefix string buf)
