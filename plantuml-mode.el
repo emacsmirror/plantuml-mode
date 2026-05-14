@@ -686,31 +686,169 @@ or by first querying `plantuml-get-exec-mode'."
       ;;   (Note: the line with the comment should not contain any text matching other indent
       ;;    regexp or this user-control instruction will be ignored; also at most will count
       ;;    per line ...)
-      (defvar plantuml-indent-regexp-block-start "^.*{\s*$"
+      ;; NOTE (rx translation): the original regex strings used "\s" which,
+      ;; inside an Emacs Lisp string literal, evaluates to a literal space
+      ;; character (not the whitespace syntax class).  The translations below
+      ;; preserve that exact behaviour by using " " for every "\s" — so they
+      ;; remain insensitive to tabs the same way as before (see PR #144).
+      (defvar plantuml-indent-regexp-block-start
+        (rx line-start
+            (zero-or-more not-newline)
+            "{"
+            (zero-or-more " ")
+            line-end)
         "Indentation regex for all plantuml elements that might define a {} block.
 Plantuml elements like skinparam, rectangle, sprite, package, etc.
 The opening { has to be the last visible character in the line (whitespace
 might follow).")
-      (defvar plantuml-indent-regexp-note-start "^\s*\\(floating\s+\\)?[hr]?note\s+\\(right\\|left\\|top\\|bottom\\|over\\|as\\)[^:]*\\(\\:\\:[^:]+\\)?$" "simplyfied regex; note syntax is especially inconsistent across diagrams")
-      (defvar plantuml-indent-regexp-group-start "^\s*\\(alt\\|else\\|opt\\|loop\\|par\\|break\\|critical\\|group\\)\\(?:\s+.+\\|$\\)"
+      (defvar plantuml-indent-regexp-note-start
+        (rx line-start
+            (zero-or-more " ")
+            (optional (group "floating" (one-or-more " ")))
+            (optional (any "hr"))
+            "note"
+            (one-or-more " ")
+            (group (or "right" "left" "top" "bottom" "over" "as"))
+            (zero-or-more (not (any ":")))
+            (optional (group "::" (one-or-more (not (any ":")))))
+            line-end)
+        "simplyfied regex; note syntax is especially inconsistent across diagrams")
+      (defvar plantuml-indent-regexp-group-start
+        (rx line-start
+            (zero-or-more " ")
+            (group (or "alt" "else" "opt" "loop" "par"
+                       "break" "critical" "group"))
+            (or (seq (one-or-more " ") (one-or-more not-newline))
+                line-end))
         "Indentation regex for plantuml group elements  defined for sequence diagrams.
 Two variants for groups: keyword is either followed by whitespace and some text
 or it is followed by line end.")
-      (defvar plantuml-indent-regexp-activate-start "^\s*activate\s+.+$")
-      (defvar plantuml-indent-regexp-box-start "^\s*box\s+.+$")
-      (defvar plantuml-indent-regexp-ref-start "^\s*ref\s+over\s+[^:]+?$")
-      (defvar plantuml-indent-regexp-title-start "^\s*title\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-header-start "^\s*\\(?:\\(?:center\\|left\\|right\\)\s+header\\|header\\)\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-footer-start "^\s*\\(?:\\(?:center\\|left\\|right\\)\s+footer\\|footer\\)\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-legend-start "^\s*\\(?:legend\\|legend\s+\\(?:bottom\\|top\\)\\|legend\s+\\(?:center\\|left\\|right\\)\\|legend\s+\\(?:bottom\\|top\\)\s+\\(?:center\\|left\\|right\\)\\)\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-oldif-start "^.*if\s+\".*\"\s+then\s*\\('.*\\)?$"
+      (defvar plantuml-indent-regexp-activate-start
+        (rx line-start
+            (zero-or-more " ")
+            "activate"
+            (one-or-more " ")
+            (one-or-more not-newline)
+            line-end))
+      (defvar plantuml-indent-regexp-box-start
+        (rx line-start
+            (zero-or-more " ")
+            "box"
+            (one-or-more " ")
+            (one-or-more not-newline)
+            line-end))
+      (defvar plantuml-indent-regexp-ref-start
+        (rx line-start
+            (zero-or-more " ")
+            "ref"
+            (one-or-more " ")
+            "over"
+            (one-or-more " ")
+            (+? (not (any ":")))
+            line-end))
+      (defvar plantuml-indent-regexp-title-start
+        (rx line-start
+            (zero-or-more " ")
+            "title"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-header-start
+        (rx line-start
+            (zero-or-more " ")
+            (or (seq (or "center" "left" "right") (one-or-more " ") "header")
+                "header")
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-footer-start
+        (rx line-start
+            (zero-or-more " ")
+            (or (seq (or "center" "left" "right") (one-or-more " ") "footer")
+                "footer")
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-legend-start
+        (rx line-start
+            (zero-or-more " ")
+            (or "legend"
+                (seq "legend" (one-or-more " ") (or "bottom" "top"))
+                (seq "legend" (one-or-more " ") (or "center" "left" "right"))
+                (seq "legend"
+                     (one-or-more " ") (or "bottom" "top")
+                     (one-or-more " ") (or "center" "left" "right")))
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-oldif-start
+        (rx line-start
+            (zero-or-more not-newline)
+            "if"
+            (one-or-more " ")
+            "\"" (zero-or-more not-newline) "\""
+            (one-or-more " ")
+            "then"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end)
         "used in current activity diagram, sometimes already mentioned as deprecated")
-      (defvar plantuml-indent-regexp-newif-start "^\s*\\(?:else\\)?if\s+(.*)\s+then\s*.*$")
-      (defvar plantuml-indent-regexp-loop-start "^\s*\\(?:repeat\s*\\|while\s+(.*).*\\)$")
-      (defvar plantuml-indent-regexp-fork-start "^\s*\\(?:fork\\|split\\)\\(?:\s+again\\)?\s*$")
-      (defvar plantuml-indent-regexp-case-start "^\s*\\(?:switch\\|case\\)\s-*(.*)\s*$")
-      (defvar plantuml-indent-regexp-macro-start "^\s*!definelong.*$")
-      (defvar plantuml-indent-regexp-user-control-start "^.*'.*\s*PLANTUML_MODE_INDENT_INCREASE\s*.*$")
+      (defvar plantuml-indent-regexp-newif-start
+        (rx line-start
+            (zero-or-more " ")
+            (optional "else")
+            "if"
+            (one-or-more " ")
+            "(" (zero-or-more not-newline) ")"
+            (one-or-more " ")
+            "then"
+            (zero-or-more " ")
+            (zero-or-more not-newline)
+            line-end))
+      (defvar plantuml-indent-regexp-loop-start
+        (rx line-start
+            (zero-or-more " ")
+            (or (seq "repeat" (zero-or-more " "))
+                (seq "while"
+                     (one-or-more " ")
+                     "(" (zero-or-more not-newline) ")"
+                     (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-fork-start
+        (rx line-start
+            (zero-or-more " ")
+            (or "fork" "split")
+            (optional (one-or-more " ") "again")
+            (zero-or-more " ")
+            line-end))
+      ;; NOTE: original used `\s-*` inside a string literal, which becomes
+      ;; ` -*` (space then zero-or-more hyphens), not the whitespace syntax
+      ;; class.  Preserved verbatim — almost certainly an upstream bug.
+      (defvar plantuml-indent-regexp-case-start
+        (rx line-start
+            (zero-or-more " ")
+            (or "switch" "case")
+            " "
+            (zero-or-more "-")
+            "(" (zero-or-more not-newline) ")"
+            (zero-or-more " ")
+            line-end))
+      (defvar plantuml-indent-regexp-macro-start
+        (rx line-start
+            (zero-or-more " ")
+            "!definelong"
+            (zero-or-more not-newline)
+            line-end))
+      (defvar plantuml-indent-regexp-user-control-start
+        (rx line-start
+            (zero-or-more not-newline)
+            "'"
+            (zero-or-more not-newline)
+            (zero-or-more " ")
+            "PLANTUML_MODE_INDENT_INCREASE"
+            (zero-or-more " ")
+            (zero-or-more not-newline)
+            line-end))
       (defvar plantuml-indent-regexp-start (list plantuml-indent-regexp-block-start
                                                  plantuml-indent-regexp-group-start
                                                  plantuml-indent-regexp-activate-start
@@ -728,23 +866,140 @@ or it is followed by line end.")
                                                  plantuml-indent-regexp-macro-start
                                                  plantuml-indent-regexp-oldif-start
                                                  plantuml-indent-regexp-user-control-start))
-      (defvar plantuml-indent-regexp-block-end "^\s*\\(?:}\\|endif\\|else\s*.*\\|end\\)\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-note-end "^\s*\\(end\s+note\\|end[rh]note\\)\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-group-end "^\s*end\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-activate-end "^\s*deactivate\s+.+$")
-      (defvar plantuml-indent-regexp-box-end "^\s*end\s+box\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-ref-end "^\s*end\s+ref\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-title-end "^\s*end\s+title\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-header-end "^\s*endheader\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-footer-end "^\s*endfooter\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-legend-end "^\s*endlegend\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-oldif-end "^\s*\\(endif\\|else\\)\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-newif-end "^\s*\\(endif\\|elseif\\|else\\)\s*.*$")
-      (defvar plantuml-indent-regexp-loop-end "^\s*\\(repeat\s*while\\|endwhile\\)\s*.*$")
-      (defvar plantuml-indent-regexp-fork-end "^\s*\\(\\(fork\\|split\\)\s+again\\|end\s+\\(fork\\|split\\)\\)\s*\\(\{.*\}\\)?\s*$")
-      (defvar plantuml-indent-regexp-case-end "^\s*\\(case\s-*(.*)\\|endswitch\\)\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-macro-end "^\s*!enddefinelong\s*\\('.*\\)?$")
-      (defvar plantuml-indent-regexp-user-control-end "^.*'.*\s*PLANTUML_MODE_INDENT_DECREASE\s*.*$")
+      (defvar plantuml-indent-regexp-block-end
+        (rx line-start
+            (zero-or-more " ")
+            (or "}"
+                "endif"
+                (seq "else" (zero-or-more " ") (zero-or-more not-newline))
+                "end")
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-note-end
+        (rx line-start
+            (zero-or-more " ")
+            (group (or (seq "end" (one-or-more " ") "note")
+                       (seq "end" (any "rh") "note")))
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-group-end
+        (rx line-start
+            (zero-or-more " ")
+            "end"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-activate-end
+        (rx line-start
+            (zero-or-more " ")
+            "deactivate"
+            (one-or-more " ")
+            (one-or-more not-newline)
+            line-end))
+      (defvar plantuml-indent-regexp-box-end
+        (rx line-start
+            (zero-or-more " ")
+            "end" (one-or-more " ") "box"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-ref-end
+        (rx line-start
+            (zero-or-more " ")
+            "end" (one-or-more " ") "ref"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-title-end
+        (rx line-start
+            (zero-or-more " ")
+            "end" (one-or-more " ") "title"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-header-end
+        (rx line-start
+            (zero-or-more " ")
+            "endheader"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-footer-end
+        (rx line-start
+            (zero-or-more " ")
+            "endfooter"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-legend-end
+        (rx line-start
+            (zero-or-more " ")
+            "endlegend"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-oldif-end
+        (rx line-start
+            (zero-or-more " ")
+            (group (or "endif" "else"))
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-newif-end
+        (rx line-start
+            (zero-or-more " ")
+            (group (or "endif" "elseif" "else"))
+            (zero-or-more " ")
+            (zero-or-more not-newline)
+            line-end))
+      (defvar plantuml-indent-regexp-loop-end
+        (rx line-start
+            (zero-or-more " ")
+            (group (or (seq "repeat" (zero-or-more " ") "while")
+                       "endwhile"))
+            (zero-or-more " ")
+            (zero-or-more not-newline)
+            line-end))
+      (defvar plantuml-indent-regexp-fork-end
+        (rx line-start
+            (zero-or-more " ")
+            (group (or (seq (group (or "fork" "split"))
+                            (one-or-more " ") "again")
+                       (seq "end" (one-or-more " ")
+                            (group (or "fork" "split")))))
+            (zero-or-more " ")
+            (optional (group "{" (zero-or-more not-newline) "}"))
+            (zero-or-more " ")
+            line-end))
+      ;; NOTE: original used `\s-*` — see comment on the -case-start regex.
+      (defvar plantuml-indent-regexp-case-end
+        (rx line-start
+            (zero-or-more " ")
+            (group (or (seq "case" " " (zero-or-more "-")
+                            "(" (zero-or-more not-newline) ")")
+                       "endswitch"))
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-macro-end
+        (rx line-start
+            (zero-or-more " ")
+            "!enddefinelong"
+            (zero-or-more " ")
+            (optional (group "'" (zero-or-more not-newline)))
+            line-end))
+      (defvar plantuml-indent-regexp-user-control-end
+        (rx line-start
+            (zero-or-more not-newline)
+            "'"
+            (zero-or-more not-newline)
+            (zero-or-more " ")
+            "PLANTUML_MODE_INDENT_DECREASE"
+            (zero-or-more " ")
+            (zero-or-more not-newline)
+            line-end))
       (defvar plantuml-indent-regexp-end (list plantuml-indent-regexp-block-end
                                                plantuml-indent-regexp-group-end
                                                plantuml-indent-regexp-activate-end
