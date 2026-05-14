@@ -662,10 +662,51 @@ or by first querying `plantuml-get-exec-mode'."
   (let ((mode (or mode (plantuml-get-exec-mode))))
     (unless plantuml-kwdList
       (plantuml-init mode)
-      (defvar plantuml-types-regexp (concat "^\\s *\\(" (regexp-opt plantuml-types 'words) "\\|\\<\\(note\\s +over\\|note\\s +\\(left\\|right\\|bottom\\|top\\)\\s +\\(of\\)?\\)\\>\\|\\<\\(\\(left\\|center\\|right\\)\\s +\\(header\\|footer\\)\\)\\>\\)"))
-      (defvar plantuml-keywords-regexp (concat "^\\s *" (regexp-opt plantuml-keywords 'words)  "\\|\\(<\\|<|\\|\\*\\|o\\)\\(\\.+\\|-+\\)\\|\\(\\.+\\|-+\\)\\(>\\||>\\|\\*\\|o\\)\\|\\.\\{2,\\}\\|-\\{2,\\}"))
+      ;; Font-lock regexes are built at init time because the keyword lists
+      ;; come from `plantuml.jar -language' output.  `rx-to-string' is used
+      ;; instead of the `rx' macro so that `regexp-opt' results can be
+      ;; spliced in via the `(regexp ,…)' form.
+      (defvar plantuml-types-regexp
+        (rx-to-string
+         `(seq line-start
+               (zero-or-more (syntax whitespace))
+               (group
+                (or (regexp ,(regexp-opt plantuml-types 'words))
+                    (seq word-start
+                         (group
+                          (or (seq "note" (one-or-more (syntax whitespace)) "over")
+                              (seq "note" (one-or-more (syntax whitespace))
+                                   (group (or "left" "right" "bottom" "top"))
+                                   (one-or-more (syntax whitespace))
+                                   (optional (group "of")))))
+                         word-end)
+                    (seq word-start
+                         (group (group (or "left" "center" "right"))
+                                (one-or-more (syntax whitespace))
+                                (group (or "header" "footer")))
+                         word-end))))
+         t))
+      (defvar plantuml-keywords-regexp
+        (rx-to-string
+         `(or (seq line-start
+                   (zero-or-more (syntax whitespace))
+                   (regexp ,(regexp-opt plantuml-keywords 'words)))
+              (seq (group (or "<" "<|" "*" "o"))
+                   (group (or (one-or-more ".") (one-or-more "-"))))
+              (seq (group (or (one-or-more ".") (one-or-more "-")))
+                   (group (or ">" "|>" "*" "o")))
+              (>= 2 ".")
+              (>= 2 "-"))
+         t))
+      ;; NOTE: kept as a plain `regexp-opt' call — wrapping a single
+      ;; `regexp-opt' in `rx-to-string' adds noise without aiding readability.
       (defvar plantuml-builtins-regexp (regexp-opt plantuml-builtins 'words))
-      (defvar plantuml-preprocessors-regexp (concat "^\\s *" (regexp-opt plantuml-preprocessors 'words)))
+      (defvar plantuml-preprocessors-regexp
+        (rx-to-string
+         `(seq line-start
+               (zero-or-more (syntax whitespace))
+               (regexp ,(regexp-opt plantuml-preprocessors 'words)))
+         t))
 
       ;; Below are the regexp's for indentation.
       ;; Notes:
