@@ -38,6 +38,7 @@
 
 ;;; Change log:
 ;;
+;; version 1.9.0, 2026-05-14 Moved regexes to `rx', support for tab indents
 ;; version 1.8.0, 2025-07-04 Support for `'hex' and `'deflate' modes for server URL encoding
 ;; version 1.7.0, 2025-05-24 Support for `completion-at-point'
 ;; version 1.6.0, 2025-05-15 Fix server exec mode; various indentation enhancements and bug fixes; better preview buffer management
