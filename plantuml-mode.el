@@ -688,8 +688,8 @@ might follow).")
 
 (defvar plantuml-indent-regexp-note-start
   (rx line-start
-      (zero-or-more " ")
-      (optional (group "floating" (one-or-more " ")))
+      (zero-or-more blank)
+      (optional (group "floating" (one-or-more blank)))
       (optional (any "hr"))
       "note"
       (one-or-more " ")
@@ -701,11 +701,16 @@ might follow).")
 
 (defvar plantuml-indent-regexp-group-start
   (rx line-start
-      (zero-or-more " ")
-      (group (or "alt" "else" "opt" "loop" "par"
-                 "break" "critical" "group"))
-      (or (seq (one-or-more " ") (one-or-more not-newline))
-          line-end))
+      (zero-or-more blank)
+      (or
+       ;; keywords that open blocks with or without following tokens on the same line
+       (seq (group (or "alt" "else" "opt" "loop" "par" "critical" "group"))
+            (or (seq (one-or-more blank) (one-or-more not-newline))
+                line-end))
+       ;; keywords that open blocks only when followed by a label
+       (seq (group "break")
+            (one-or-more blank)
+            (one-or-more not-newline))))
   "Indentation regex for plantuml group elements  defined for sequence diagrams.
 Two variants for groups: keyword is either followed by whitespace and some text
 or it is followed by line end.")

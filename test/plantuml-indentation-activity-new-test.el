@@ -523,5 +523,28 @@ endfork
 stop
 @enduml"))
 
+(ert-deftest plantuml-test-indentation/activity-new/break ()
+  "Test correct indentation of plantuml activity-new for `break' within conditionals."
+  (plantuml-test-indent-block
+   "@startuml
+ start
+  while (cond)
+    if (other) then (yes)
+      break
+    endif
+  endwhile
+  stop
+    @enduml"
+
+   "@startuml
+start
+while (cond)
+  if (other) then (yes)
+    break
+  endif
+endwhile
+stop
+@enduml"))
+
 (provide 'plantuml-indentation-activity-new-test)
 ;;; plantuml-indentation-activity-new-test.el ends here
