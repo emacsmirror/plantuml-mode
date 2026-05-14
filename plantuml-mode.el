@@ -913,8 +913,8 @@ Allows to optionally specify an AFTER form (default:
 
 (defvar plantuml-indent-regexp-fork-end
   (plantuml-indent-regexp-meta-block-end '(group (or (seq (group (or "fork" "split"))
-                                                          (one-or-more " ") "again")
-                                                     (seq "end" (one-or-more " ")
+                                                          (one-or-more blank) "again")
+                                                     (seq "end" (zero-or-more blank)
                                                           (group (or "fork" "split")))))
                                          :after '(seq (zero-or-more " ")
                                                       (optional (group "{" (zero-or-more not-newline) "}"))

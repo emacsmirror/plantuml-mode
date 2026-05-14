@@ -485,5 +485,43 @@ endswitch
 stop
 @enduml"))
 
+(ert-deftest plantuml-test-indentation/activity-new/endfork ()
+  "Test correct indentation of plantuml activity-new for `endfork' syntax."
+  (plantuml-test-indent-block
+   "@startuml
+start
+fork
+    :CCSE-94;
+    fork again
+    :CCSE-95;
+    end fork
+
+    :CCSE-96;
+    fork
+    :CCSE-98;
+    fork again
+    :CCSE-99;
+    endfork
+
+    stop
+    @enduml"
+   "@startuml
+start
+fork
+  :CCSE-94;
+fork again
+  :CCSE-95;
+end fork
+
+:CCSE-96;
+fork
+  :CCSE-98;
+fork again
+  :CCSE-99;
+endfork
+
+stop
+@enduml"))
+
 (provide 'plantuml-indentation-activity-new-test)
 ;;; plantuml-indentation-activity-new-test.el ends here
