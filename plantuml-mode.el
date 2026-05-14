@@ -709,143 +709,123 @@ might follow).")
 Two variants for groups: keyword is either followed by whitespace and some text
 or it is followed by line end.")
 
-(defun plantuml-indent-regexp-meta-block-start (start-token)
-  "Regex for block-starting token START-TOKEN."
-  (rx line-start
-      (zero-or-more " ")
-      start-token
-      (one-or-more " ")
-      (one-or-more not-newline)
-      line-end))
+(cl-defun plantuml-indent-regexp-meta-block-start (start-form
+                                                   &key (before '(zero-or-more " "))
+                                                        (after '(seq (one-or-more " ")
+                                                                     (one-or-more not-newline))))
+  "Regex for block-starting form START-FORM.
+
+Allows to optionally specify a BEFORE form (default:
+`(zero-or-more \" \").
+
+Allows to optionally specify an AFTER form (default:
+`(seq (one-or-more \" \") (one-or-more not-newline))"
+  (rx-to-string
+   `(seq line-start
+         ,before
+         ,start-form
+         ,after
+         line-end)))
+
+(defun plantuml-indent-regexp-meta-block-end (end-form)
+  "Regex matching a block-ending construct described by END-FORM.
+END-FORM is an `rx' form — typically a string token like \"endif\"
+or a composite form like `(or \"}\" \"end\")'."
+    (rx-to-string
+     `(seq line-start
+           (zero-or-more " ")
+           ,end-form
+           (zero-or-more " ")
+           (optional (group "'" (zero-or-more not-newline)))
+           line-end)))
 
 (defvar plantuml-indent-regexp-activate-start
-  (rx line-start
-      (zero-or-more " ")
-      "activate"
-      (one-or-more " ")
-      (one-or-more not-newline)
-      line-end))
+  (plantuml-indent-regexp-meta-block-start "activate"))
 
 (defvar plantuml-indent-regexp-box-start
-  (rx line-start
-      (zero-or-more " ")
-      "box"
-      (one-or-more " ")
-      (one-or-more not-newline)
-      line-end))
+  (plantuml-indent-regexp-meta-block-start "box"))
 
 (defvar plantuml-indent-regexp-ref-start
-  (rx line-start
-      (zero-or-more " ")
-      "ref"
-      (one-or-more " ")
-      "over"
-      (one-or-more " ")
-      (+? (not (any ":")))
-      line-end))
+  (plantuml-indent-regexp-meta-block-start '(seq "ref"
+                                                 (one-or-more " ")
+                                                 "over")
+                                           :after '(seq (one-or-more " ")
+                                                        (+? (not (any ":"))))))
 
 (defvar plantuml-indent-regexp-title-start
-  (rx line-start
-      (zero-or-more " ")
-      "title"
-      (zero-or-more " ")
-      (optional (group "'" (zero-or-more not-newline)))
-      line-end))
+  (plantuml-indent-regexp-meta-block-start "title"
+                                           :after '(seq (zero-or-more " ")
+                                                        (optional (group "'" (zero-or-more not-newline))))))
 
 (defvar plantuml-indent-regexp-header-start
-  (rx line-start
-      (zero-or-more " ")
-      (or (seq (or "center" "left" "right") (one-or-more " ") "header")
-          "header")
-      (zero-or-more " ")
-      (optional (group "'" (zero-or-more not-newline)))
-      line-end))
+  (plantuml-indent-regexp-meta-block-start '(or (seq (or "center" "left" "right")
+                                                     (one-or-more " ")
+                                                     "header")
+                                                "header")
+                                           :after '(seq (zero-or-more " ")
+                                                        (optional (group "'" (zero-or-more not-newline))))))
 
 (defvar plantuml-indent-regexp-footer-start
-  (rx line-start
-      (zero-or-more " ")
-      (or (seq (or "center" "left" "right") (one-or-more " ") "footer")
-          "footer")
-      (zero-or-more " ")
-      (optional (group "'" (zero-or-more not-newline)))
-      line-end))
+  (plantuml-indent-regexp-meta-block-start '(or (seq (or "center" "left" "right")
+                                                     (one-or-more " ")
+                                                     "footer")
+                                                "footer")
+                                           :after '(seq (zero-or-more " ")
+                                                        (optional (group "'" (zero-or-more not-newline))))))
 
 (defvar plantuml-indent-regexp-legend-start
-  (rx line-start
-      (zero-or-more " ")
-      (or "legend"
-          (seq "legend" (one-or-more " ") (or "bottom" "top"))
-          (seq "legend" (one-or-more " ") (or "center" "left" "right"))
-          (seq "legend"
-               (one-or-more " ") (or "bottom" "top")
-               (one-or-more " ") (or "center" "left" "right")))
-      (zero-or-more " ")
-      (optional (group "'" (zero-or-more not-newline)))
-      line-end))
+  (plantuml-indent-regexp-meta-block-start '(or "legend"
+                                                (seq "legend" (one-or-more " ") (or "bottom" "top"))
+                                                (seq "legend" (one-or-more " ") (or "center" "left" "right"))
+                                                (seq "legend"
+                                                     (one-or-more " ") (or "bottom" "top")
+                                                     (one-or-more " ") (or "center" "left" "right")))
+                                           :after '(seq (zero-or-more " ")
+                                                        (optional (group "'" (zero-or-more not-newline))))))
 
 (defvar plantuml-indent-regexp-oldif-start
-  (rx line-start
-      (zero-or-more not-newline)
-      "if"
-      (one-or-more " ")
-      "\"" (zero-or-more not-newline) "\""
-      (one-or-more " ")
-      "then"
-      (zero-or-more " ")
-      (optional (group "'" (zero-or-more not-newline)))
-      line-end)
+  (plantuml-indent-regexp-meta-block-start '(seq "if"
+                                                 (one-or-more " ")
+                                                 "\"" (zero-or-more not-newline) "\""
+                                                 (one-or-more " ")
+                                                 "then")
+                                           :before '(zero-or-more not-newline)
+                                           :after '(seq (zero-or-more " ")
+                                                        (optional (group "'" (zero-or-more not-newline)))))
   "Used in current activity diagram but sometimes already mentioned as deprecated.")
 
 (defvar plantuml-indent-regexp-newif-start
-  (rx line-start
-      (zero-or-more " ")
-      (optional "else")
-      "if"
-      (one-or-more " ")
-      "(" (zero-or-more not-newline) ")"
-      (one-or-more " ")
-      "then"
-      (zero-or-more " ")
-      (zero-or-more not-newline)
-      line-end))
+  (plantuml-indent-regexp-meta-block-start '(seq (optional "else")
+                                                 "if"
+                                                 (one-or-more " ")
+                                                 "(" (zero-or-more not-newline) ")"
+                                                 (one-or-more " ")
+                                                 "then")
+                                           :after '(seq (zero-or-more " ")
+                                                        (zero-or-more not-newline))))
 
 (defvar plantuml-indent-regexp-loop-start
-  (rx line-start
-      (zero-or-more " ")
-      (or (seq "repeat" (zero-or-more " "))
-          (seq "while"
-               (one-or-more " ")
-               "(" (zero-or-more not-newline) ")"
-               (zero-or-more not-newline)))
-      line-end))
+  (plantuml-indent-regexp-meta-block-start '(or (seq "repeat" (zero-or-more " "))
+                                                (seq "while"
+                                                     (one-or-more " ")
+                                                     "(" (zero-or-more not-newline) ")"
+                                                     (zero-or-more not-newline)))
+                                           :after '(seq)))
 
 (defvar plantuml-indent-regexp-fork-start
-  (rx line-start
-      (zero-or-more " ")
-      (or "fork" "split")
-      (optional (one-or-more " ") "again")
-      (zero-or-more " ")
-      line-end))
+  (plantuml-indent-regexp-meta-block-start '(seq (or "fork" "split")
+                                                 (optional (one-or-more " ") "again"))
+                                           :after '(zero-or-more " ")))
 
-;; NOTE: original used `\s-*` inside a string literal, which becomes
-;; ` -*` (space then zero-or-more hyphens), not the whitespace syntax
-;; class.  Preserved verbatim — almost certainly an upstream bug.
 (defvar plantuml-indent-regexp-case-start
-  (rx line-start
-      (zero-or-more " ")
-      (or "switch" "case")
-      " "
-      (zero-or-more "-")
-      "(" (zero-or-more not-newline) ")"
-      (zero-or-more " ")
-      line-end))
+  (plantuml-indent-regexp-meta-block-start '(seq (or "switch" "case")
+                                                 (zero-or-more (syntax whitespace))
+                                                 "(" (zero-or-more not-newline) ")")
+                                           :after '(zero-or-more " ")))
 
 (defvar plantuml-indent-regexp-macro-start
-  (rx line-start
-      (zero-or-more " ")
-      "!definelong"
-      (zero-or-more not-newline)
-      line-end))
+  (plantuml-indent-regexp-meta-block-start "!definelong"
+                                           :after '(zero-or-more not-newline)))
 
 (defvar plantuml-indent-regexp-user-control-start
   (rx line-start
@@ -877,17 +857,14 @@ or it is followed by line end.")
                                            plantuml-indent-regexp-user-control-start))
 
 (defvar plantuml-indent-regexp-block-end
-  (rx line-start
-      (zero-or-more " ")
-      (or "}"
-          "endif"
-          (seq "else" (zero-or-more " ") (zero-or-more not-newline))
-          "end")
-      (zero-or-more " ")
-      (optional (group "'" (zero-or-more not-newline)))
-      line-end))
+  (plantuml-indent-regexp-meta-block-end '(or "}"
+                                              "endif"
+                                              (seq "else" (zero-or-more " ") (zero-or-more not-newline))
+                                              "end")))
 
 (defvar plantuml-indent-regexp-note-end
+  (plantuml-indent-regexp-meta-block-end '(group (or (seq "end" (one-or-more " ") "note")
+                                                     (seq "end" (any "rh") "note"))))
   (rx line-start
       (zero-or-more " ")
       (group (or (seq "end" (one-or-more " ") "note")

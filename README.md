@@ -194,6 +194,9 @@ the textual mode and see if the output is valid SVG.
 Development happens mostly on the `develop` branch, which is released on MELPA at every commit. The `master` branch is used to generate tags which are then released to [MELPA
 stable](https://stable.melpa.org).
 
+Integration tests (`make integration` or `make test`) require a PlantUML server running locally at port `8080`, you can use
+`docker compose up -d` for that.
+
 In order to contribute to `plantuml-mode` make sure to:
 
 - agree with the [GPLv3+ licencing terms](#License) as they are mandated by Emacs
